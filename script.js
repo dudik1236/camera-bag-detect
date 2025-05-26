@@ -10,25 +10,42 @@ async function loadModel() {
   console.log("Model telah dimuat.");
 }
 
+// Deteksi apakah perangkat mobile
+function isMobileDevice() {
+  return /Mobi|Android/i.test(navigator.userAgent);
+}
+
 // Akses kamera
 async function startCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  webcamElement.srcObject = stream;
-  isStreaming = true;
-  requestAnimationFrame(loop);
+  if (!isMobileDevice()) {
+    alert("Fungsi ini hanya tersedia di perangkat mobile.");
+    return;
+  }
+
+  const facingMode = document.getElementById("cameraSelect").value;
+
+  const constraints = {
+    video: { facingMode: facingMode }
+  };
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    webcamElement.srcObject = stream;
+    isStreaming = true;
+    requestAnimationFrame(loop);
+  } catch (err) {
+    alert("Gagal mengakses kamera: " + err.message);
+  }
 }
 
 // Loop deteksi
 async function loop() {
   if (!isStreaming) return;
 
-  // Gambar frame dari video ke canvas
   ctx.drawImage(webcamElement, 0, 0, 640, 480);
 
-  // Deteksi objek
   const predictions = await model.detect(canvasElement);
 
-  // Filter hanya tas
   const bagPredictions = predictions.filter(p => 
     p.class === "backpack" || 
     p.class === "handbag" || 
