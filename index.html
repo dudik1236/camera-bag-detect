@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Deteksi Tas dengan Kamera</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h1>Deteksi Tas Menggunakan Kamera</h1>
-  <button id="toggleCameraBtn">Buka Kamera</button>
+  
+  <div class="controls">
+    <button id="toggleCameraBtn">Buka Kamera</button>
+    <select id="cameraSelect" disabled>
+      <option value="user">Kamera Depan</option>
+      <option value="environment">Kamera Belakang</option>
+    </select>
+  </div>
+
   <br><br>
   <video id="webcam" autoplay playsinline width="640" height="480"></video>
   <canvas id="canvas" width="640" height="480"></canvas>
 
-  <!-- Load TensorFlow.js dan COCO-SSD -->
+  <!-- TensorFlow.js dan COCO-SSD -->
   <script src="https://cdn.jsdelivr.net/npm/ @tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ @tensorflow-models/coco-ssd"></script>
-
   <script src="script.js"></script>
 </body>
 </html>
