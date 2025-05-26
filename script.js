@@ -33,6 +33,9 @@ async function startCamera() {
     webcamElement.srcObject = stream;
     isStreaming = true;
     requestAnimationFrame(loop);
+
+    // Aktifkan dropdown setelah kamera aktif
+    document.getElementById("cameraSelect").disabled = false;
   } catch (err) {
     alert("Gagal mengakses kamera: " + err.message);
   }
@@ -86,6 +89,7 @@ document.getElementById("toggleCameraBtn").addEventListener("click", () => {
     isStreaming = false;
     ctx.clearRect(0, 0, 640, 480);
     document.getElementById("toggleCameraBtn").innerText = "Buka Kamera";
+    document.getElementById("cameraSelect").disabled = true;
   }
 });
 
