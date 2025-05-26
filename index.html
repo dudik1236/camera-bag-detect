@@ -2,28 +2,90 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Deteksi Tas dengan Kamera</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deteksi Tas - YOLOv8</title>
+  <style>
+    body { text-align: center; font-family: sans-serif; background: #f0f0f0; }
+    video, canvas { width: 90%; max-width: 600px; margin-top: 10px; }
+    select { margin-top: 20px; padding: 5px; font-size: 16px; }
+  </style>
 </head>
 <body>
-  <h1>Deteksi Tas Menggunakan Kamera</h1>
+  <h2>Deteksi Tas dengan YOLOv8</h2>
+  <select id="cameraSelect"></select>
+  <br />
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
 
-  <div class="controls">
-    <button id="toggleCameraBtn">Buka Kamera</button>
-    <select id="cameraSelect" disabled>
-      <option value="user">Kamera Depan</option>
-      <option value="environment">Kamera Belakang</option>
-    </select>
-  </div>
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const cameraSelect = document.getElementById("cameraSelect");
+    let currentStream;
 
-  <br><br>
-  <video id="webcam" autoplay playsinline width="640" height="480"></video>
-  <canvas id="canvas" width="640" height="480"></canvas>
+    // Ambil daftar kamera
+    navigator.mediaDevices.enumerateDevices().then(devices => {
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      videoDevices.forEach((device, index) => {
+        const option = document.createElement("option");
+        option.value = device.deviceId;
+        option.text = device.label || `Kamera ${index + 1}`;
+        cameraSelect.appendChild(option);
+      });
+    });
 
-  <!-- TensorFlow.js dan COCO-SSD -->
-  <script src="https://cdn.jsdelivr.net/npm/ @tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ @tensorflow-models/coco-ssd"></script>
-  <script src="script.js"></script>
+    // Ganti kamera saat dipilih
+    cameraSelect.onchange = async () => {
+      if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+      currentStream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: cameraSelect.value } },
+        audio: false
+      });
+      video.srcObject = currentStream;
+    };
+
+    // Inisialisasi pertama kali
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+      currentStream = stream;
+      video.srcObject = stream;
+    });
+
+    video.onloadedmetadata = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      detectLoop();
+    };
+
+    async function detectLoop() {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = canvas.toDataURL("image/jpeg");
+
+      try {
+        const res = await fetch("https://<GANTI_DENGAN_URL_COLAB_NGROK>/detect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: imageData })
+        });
+        const data = await res.json();
+        drawBoxes(data.detections);
+      } catch (err) {
+        console.error("Gagal mengirim data:", err);
+      }
+
+      requestAnimationFrame(detectLoop);
+    }
+
+    function drawBoxes(detections) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      detections.forEach(det => {
+        if (det.label === "bag" && det.confidence > 0.5) {
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(det.x, det.y, det.width, det.height);
+        }
+      });
+    }
+  </script>
 </body>
 </html>
