@@ -10,69 +10,57 @@ async function loadModel() {
   console.log("Model telah dimuat.");
 }
 
-// Deteksi apakah perangkat mobile
-function isMobileDevice() {
-  return /Mobi|Android/i.test(navigator.userAgent);
-}
-
 // Akses kamera
 async function startCamera() {
-  if (!isMobileDevice()) {
-    alert("Fungsi ini hanya tersedia di perangkat mobile.");
-    return;
-  }
-
-  const facingMode = document.getElementById("cameraSelect").value;
-
-  const constraints = {
-    video: { facingMode: facingMode }
-  };
-
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    webcamElement.srcObject = stream;
-    isStreaming = true;
-    requestAnimationFrame(loop);
-
-    // Aktifkan dropdown setelah kamera aktif
-    document.getElementById("cameraSelect").disabled = false;
-  } catch (err) {
-    alert("Gagal mengakses kamera: " + err.message);
-  }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  webcamElement.srcObject = stream;
+  isStreaming = true;
+  requestAnimationFrame(loop);
 }
 
 // Loop deteksi
 async function loop() {
   if (!isStreaming) return;
 
+  // Gambar frame dari video ke canvas
   ctx.drawImage(webcamElement, 0, 0, 640, 480);
 
+  // Deteksi objek
   const predictions = await model.detect(canvasElement);
 
+  // Filter hanya tas
   const bagPredictions = predictions.filter(p => 
     p.class === "backpack" || 
     p.class === "handbag" || 
     p.class === "suitcase"
   );
 
+  // Gambar kotak jika ada prediksi
   drawBoundingBoxes(bagPredictions);
 
   requestAnimationFrame(loop);
 }
 
-// Gambar kotak jika ada tas
+// Fungsi menggambar kotak dan label
 function drawBoundingBoxes(predictions) {
+  // Hapus gambar sebelumnya
   ctx.clearRect(0, 0, 640, 480);
+
+  // Gambar ulang video
   ctx.drawImage(webcamElement, 0, 0, 640, 480);
 
   predictions.forEach(prediction => {
     const [x, y, width, height] = prediction.bbox;
-    ctx.strokeStyle = "#FF0000";
+
+    // Gambar kotak
+    ctx.strokeStyle = "#FF0000"; // Merah
     ctx.lineWidth = 2;
     ctx.strokeRect(x, y, width, height);
+
+    // Tampilkan teks label
     ctx.fillStyle = "#FF0000";
     ctx.font = "16px Arial";
-    ctx.fillText(prediction.class, x, y > 10 ? y - 5 : 10);
+    ctx.fillText(`${prediction.class} (${Math.round(prediction.score * 100)}%)`, x, y > 10 ? y - 5 : 10);
   });
 }
 
@@ -89,7 +77,6 @@ document.getElementById("toggleCameraBtn").addEventListener("click", () => {
     isStreaming = false;
     ctx.clearRect(0, 0, 640, 480);
     document.getElementById("toggleCameraBtn").innerText = "Buka Kamera";
-    document.getElementById("cameraSelect").disabled = true;
   }
 });
 
