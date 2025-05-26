@@ -1,9 +1,27 @@
 body {
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   text-align: center;
   margin-top: 50px;
 }
 
+.controls {
+  display: inline-block;
+  text-align: left;
+}
+
+#toggleCameraBtn {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#cameraSelect {
+  margin-left: 10px;
+  padding: 8px;
+  font-size: 16px;
+}
+
 video, canvas {
   border: 1px solid #ccc;
+  max-width: 100%;
 }
