@@ -79,7 +79,7 @@
     function drawBoxes(detections) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       detections.forEach(det => {
-        if (det.label === "laptop" && det.confidence > 0.5) {
+        if (det.label === "bag" && det.confidence > 0.5) {
           ctx.strokeStyle = "white";
           ctx.lineWidth = 3;
           ctx.strokeRect(det.x, det.y, det.width, det.height);
