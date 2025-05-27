@@ -62,7 +62,7 @@
       const imageData = canvas.toDataURL("image/jpeg");
 
       try {
-        const res = await fetch("https://8d5f-34-106-28-168.ngrok-free.app/", {
+        const res = await fetch("https://8d5f-34-106-28-168.ngrok-free.app/detect", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ image: imageData })
